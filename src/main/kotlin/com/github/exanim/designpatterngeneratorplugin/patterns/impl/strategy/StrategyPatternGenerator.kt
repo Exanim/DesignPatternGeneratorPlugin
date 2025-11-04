@@ -3,6 +3,7 @@ package com.github.exanim.designpatterngeneratorplugin.patterns.impl.strategy
 import com.github.exanim.designpatterngeneratorplugin.patterns.api.PatternParameter
 import com.github.exanim.designpatterngeneratorplugin.patterns.api.ParameterType
 import com.github.exanim.designpatterngeneratorplugin.patterns.base.BaseJavaPatternGenerator
+import com.github.exanim.designpatterngeneratorplugin.patterns.base.JavaGeneratedFile
 
 class StrategyPatternGenerator : BaseJavaPatternGenerator() {
     override val id: String = "strategy"
@@ -16,26 +17,38 @@ class StrategyPatternGenerator : BaseJavaPatternGenerator() {
         PatternParameter("methodName", "pattern.parameters.methodName", ParameterType.STRING, required = true, defaultValue = "execute")
     )
 
+    // Unused in multi-file scenario, but still required by base template
     override fun targetFileName(values: Map<String, Any>): String? = (values["contextClassName"] as? String)?.let { "$it.java" }
 
-    override fun buildJavaSource(values: Map<String, Any>): String {
-        val pkg = values["packageName"] as? String ?: return ""
-        val iface = values["strategyInterfaceName"] as? String ?: return ""
-        val concrete = values["concreteStrategyName"] as? String ?: return ""
-        val context = values["contextClassName"] as? String ?: return ""
-        val method = values["methodName"] as? String ?: return ""
-        return buildString {
+    override fun buildJavaSource(values: Map<String, Any>): String = "" // Not used; multi-file generation below
+
+    override fun buildFiles(values: Map<String, Any>): List<JavaGeneratedFile> {
+        val pkg = values["packageName"] as? String ?: return emptyList()
+        val iface = values["strategyInterfaceName"] as? String ?: return emptyList()
+        val concrete = values["concreteStrategyName"] as? String ?: return emptyList()
+        val context = values["contextClassName"] as? String ?: return emptyList()
+        val method = values["methodName"] as? String ?: return emptyList()
+
+        val interfaceSrc = buildString {
             appendLine("package $pkg;")
             appendLine()
-            appendLine("// Generated Strategy pattern")
+            appendLine("// Strategy interface")
             appendLine("public interface $iface {")
             appendLine("    void $method();")
             appendLine("}")
+        }
+        val concreteSrc = buildString {
+            appendLine("package $pkg;")
             appendLine()
+            appendLine("// Concrete strategy")
             appendLine("public class $concrete implements $iface {")
             appendLine("    @Override public void $method() { }")
             appendLine("}")
+        }
+        val contextSrc = buildString {
+            appendLine("package $pkg;")
             appendLine()
+            appendLine("// Context holding a strategy reference")
             appendLine("public class $context {")
             appendLine("    private $iface strategy;")
             appendLine("    public $context($iface strategy) { this.strategy = strategy; }")
@@ -43,6 +56,10 @@ class StrategyPatternGenerator : BaseJavaPatternGenerator() {
             appendLine("    public void $method() { strategy.$method(); }")
             appendLine("}")
         }
+        return listOf(
+            JavaGeneratedFile("$iface.java", interfaceSrc, pkg),
+            JavaGeneratedFile("$concrete.java", concreteSrc, pkg),
+            JavaGeneratedFile("$context.java", contextSrc, pkg)
+        )
     }
 }
-

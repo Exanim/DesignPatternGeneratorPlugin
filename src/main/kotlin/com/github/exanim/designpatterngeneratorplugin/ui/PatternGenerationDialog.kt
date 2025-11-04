@@ -181,13 +181,46 @@ class PatternGenerationDialog(private val project: Project, generators: List<Pat
         val gen = getSelectedGenerator() ?: return
         val values = getValues()
         val missing = gen.parameters.filter { it.required && (values[it.id] == null || (values[it.id] is String && (values[it.id] as String).isBlank())) }
-        val text = if (missing.isNotEmpty()) {
+        if (previewContainer == null) return
+        val content = if (missing.isNotEmpty()) {
             "// " + MyBundle.message("preview.notReady", missing.joinToString { it.id }) + "\n"
         } else {
             (gen as? BaseJavaPatternGenerator)?.preview(values) ?: "// Preview not available"
         }
-        previewArea.text = text
-        // Removed caretPosition adjustment
+        updateTabbedPreview(content)
+    }
+
+    private fun updateTabbedPreview(combined: String) {
+        // Detect file headers formatted as: // <filename>.java
+        val headerRegex = Regex("^// (.+\\.java)")
+        val lines = combined.lines()
+        val fileBlocks = mutableListOf<Pair<String, MutableList<String>>>()
+        var current: Pair<String, MutableList<String>>? = null
+        for (line in lines) {
+            val match = headerRegex.matchEntire(line)
+            if (match != null) {
+                // Start new block
+                current = match.groupValues[1] to mutableListOf()
+                fileBlocks += current
+            } else {
+                current?.second?.add(line)
+            }
+        }
+        if (fileBlocks.size <= 1) {
+            // Single file or placeholder; show raw combined text
+            previewArea.text = combined
+            previewContainer?.viewport?.view = previewArea
+            return
+        }
+        val tabs = JTabbedPane()
+        for ((fileName, bodyLines) in fileBlocks) {
+            val body = bodyLines.joinToString("\n").trimEnd()
+            val doc = com.intellij.openapi.editor.EditorFactory.getInstance().createDocument(body.ifBlank { "// Empty file" })
+            val field = EditorTextField(doc, project, JavaFileType.INSTANCE, true, false)
+            field.border = JBUI.Borders.empty(4)
+            tabs.addTab(fileName, JBScrollPane(field))
+        }
+        previewContainer?.viewport?.view = tabs
     }
 
     private fun showPreview() {
