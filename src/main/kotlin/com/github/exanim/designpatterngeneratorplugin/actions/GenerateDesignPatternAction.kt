@@ -13,7 +13,6 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiManager
 import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.vfs.VirtualFile
 
 class GenerateDesignPatternAction : AnAction(
     MyBundle.message("action.generateDesignPattern.text"),
