@@ -5,7 +5,6 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.openapi.project.Project
 
 /** Application-level service providing access to registered pattern generators. */
 @Service(Service.Level.APP)
