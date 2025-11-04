@@ -3,75 +3,242 @@ package com.github.exanim.designpatterngeneratorplugin.ui
 import com.github.exanim.designpatterngeneratorplugin.MyBundle
 import com.github.exanim.designpatterngeneratorplugin.patterns.api.PatternGenerator
 import com.github.exanim.designpatterngeneratorplugin.patterns.api.ParameterType
+import com.github.exanim.designpatterngeneratorplugin.patterns.base.BaseJavaPatternGenerator
+import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBCheckBox
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextField
-import java.awt.BorderLayout
-import java.awt.Component
-import java.awt.GridBagConstraints
-import java.awt.GridBagLayout
-import java.awt.Insets
+import com.intellij.ui.EditorTextField
+import com.intellij.util.ui.JBUI
+import com.intellij.icons.AllIcons
+import java.awt.*
+import java.awt.event.ItemEvent
 import javax.swing.*
+import javax.swing.Timer
 
-class PatternGenerationDialog(private val project: Project, private val generators: List<PatternGenerator>) : DialogWrapper(project) {
-    private val patternCombo = ComboBox<PatternGenerator>().apply {
-        generators.forEach { addItem(it) }
-        renderer = object : ListCellRenderer<PatternGenerator> {
-            private val delegate = DefaultListCellRenderer()
-            override fun getListCellRendererComponent(list: JList<out PatternGenerator>?, value: PatternGenerator?, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component {
-                return delegate.getListCellRendererComponent(list, value?.let { MyBundle.message(it.nameKey) } ?: "", index, isSelected, cellHasFocus)
+// Pattern categories (simple heuristic mapping for now)
+enum class PatternCategory { CREATIONAL, STRUCTURAL, BEHAVIORAL }
+
+private sealed interface PatternComboItem
+private data class CategoryHeader(val category: PatternCategory) : PatternComboItem
+private data class GeneratorEntry(val generator: PatternGenerator) : PatternComboItem
+
+class PatternGenerationDialog(private val project: Project, generators: List<PatternGenerator>) : DialogWrapper(project) {
+    // Phase flags
+    private var patternChosen = false
+    private var previewShown = false
+    private var centerRootPanel: JPanel? = null
+    private var previewContainer: JScrollPane? = null
+    private val previewToggle: JBCheckBox = JBCheckBox(MyBundle.message("button.showPreview"), false)
+
+    // Debounce timer for preview updates
+    private val previewUpdateTimer = Timer(160) { performPreviewUpdate() }.apply { this.isRepeats = false }
+    private val previewDoc = com.intellij.openapi.editor.EditorFactory.getInstance().createDocument("// Code preview will appear when all mandatory fields are filled\n")
+    private val previewArea: EditorTextField = EditorTextField(previewDoc, project, JavaFileType.INSTANCE, true, false).apply {
+        border = JBUI.Borders.empty(6)
+        // Removed isOneLineMode (protected)
+    }
+
+    private val patternItems: List<PatternComboItem> = buildList {
+        val groups = generators.groupBy { categorize(it) }
+        PatternCategory.entries.forEach { cat ->
+            val gs = groups[cat] ?: emptyList()
+            if (gs.isNotEmpty()) {
+                add(CategoryHeader(cat))
+                gs.forEach { add(GeneratorEntry(it)) }
             }
         }
     }
 
-    private val paramPanel = JPanel(GridBagLayout())
+    private val patternCombo = ComboBox<PatternComboItem>().apply {
+        patternItems.forEach { addItem(it) }
+        renderer = object : ListCellRenderer<PatternComboItem> {
+            private val defaultRenderer = DefaultListCellRenderer()
+            override fun getListCellRendererComponent(list: JList<out PatternComboItem>?, value: PatternComboItem?, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component {
+                return when (value) {
+                    null -> defaultRenderer.getListCellRendererComponent(list, "", index, isSelected, cellHasFocus)
+                    is CategoryHeader -> categoryComponent(value, isSelected)
+                    is GeneratorEntry -> generatorComponent(value.generator, list, isSelected)
+                }
+            }
+            private fun categoryComponent(header: CategoryHeader, isSelected: Boolean): Component {
+                val panel = JPanel(BorderLayout())
+                panel.border = JBUI.Borders.empty(4,6)
+                panel.background = if (isSelected) JBColor.namedColor("ComboBox.background", JBColor.LIGHT_GRAY) else JBColor(0xE0E0E0, 0x3E3E3E)
+                val label = JLabel(header.category.name.lowercase().replaceFirstChar { it.titlecase() })
+                label.font = label.font.deriveFont(Font.BOLD)
+                panel.add(label, BorderLayout.WEST)
+                return panel
+            }
+            private fun generatorComponent(gen: PatternGenerator, list: JList<out PatternComboItem>?, isSelected: Boolean): Component {
+                val panel = JPanel(BorderLayout())
+                panel.border = JBUI.Borders.empty(2,6)
+                panel.background = if (isSelected) list?.selectionBackground ?: JBColor.LIGHT_GRAY else list?.background ?: JBColor.background()
+                val icon = patternIcon(gen)
+                val label = JLabel(MyBundle.message(gen.nameKey), icon, JLabel.LEFT)
+                panel.add(label, BorderLayout.WEST)
+                return panel
+            }
+        }
+        addItemListener { ev ->
+            if (ev.stateChange == ItemEvent.SELECTED && ev.item is GeneratorEntry) {
+                patternChosen = true
+                buildParameterPhase()
+            }
+        }
+    }
+
+    private val paramsPanel = JPanel(GridBagLayout())
+    private val paramsScroll = JBScrollPane(paramsPanel).apply { border = JBUI.Borders.empty() }
     private val fieldComponents = LinkedHashMap<String, JComponent>()
+
+    private val contentHolder = JPanel(BorderLayout())
 
     init {
         title = MyBundle.message("dialog.patternGenerator.title")
         init()
-        rebuildParameters()
-        patternCombo.addActionListener { rebuildParameters() }
     }
 
     override fun createCenterPanel(): JComponent {
         val root = JPanel(BorderLayout())
+        centerRootPanel = root
+        root.border = JBUI.Borders.empty(8)
         val top = JPanel(BorderLayout()).apply {
+            border = JBUI.Borders.emptyBottom(8)
             add(JLabel(MyBundle.message("label.selectPattern")), BorderLayout.WEST)
             add(patternCombo, BorderLayout.CENTER)
         }
         root.add(top, BorderLayout.NORTH)
-        root.add(JScrollPane(paramPanel), BorderLayout.CENTER)
+        root.add(contentHolder, BorderLayout.CENTER)
+        // Initial minimal size
+        root.preferredSize = Dimension(520, 140)
         return root
     }
 
-    private fun rebuildParameters() {
-        paramPanel.removeAll()
-        fieldComponents.clear()
+    override fun dispose() {
+        previewUpdateTimer.stop()
+        super.dispose()
+    }
+
+    private fun buildParameterPhase() {
+        contentHolder.removeAll(); fieldComponents.clear(); previewShown = false
         val generator = getSelectedGenerator() ?: return
+        buildParametersUI(generator)
+        // Add preview toggle above parameters
+        val wrapper = JPanel(BorderLayout()).apply {
+            border = JBUI.Borders.empty()
+            add(previewToggle.apply { addItemListener { evaluatePreviewVisibility() } }, BorderLayout.NORTH)
+            add(paramsScroll, BorderLayout.CENTER)
+        }
+        contentHolder.add(wrapper, BorderLayout.CENTER)
+        resizeForParameters(generator.parameters.size, includePreview = false)
+        contentHolder.revalidate(); contentHolder.repaint(); window?.pack()
+    }
+
+    private fun buildParametersUI(generator: PatternGenerator) {
+        paramsPanel.removeAll(); fieldComponents.clear(); previewContainer = null
         val gbc = GridBagConstraints().apply {
-            gridx = 0; gridy = 0; weightx = 0.0; insets = Insets(4,4,4,4); anchor = GridBagConstraints.WEST
+            gridx = 0; gridy = 0; weightx = 1.0; insets = JBUI.insets(2,6,2,6); anchor = GridBagConstraints.WEST; fill = GridBagConstraints.HORIZONTAL
         }
         for (p in generator.parameters) {
             gbc.gridx = 0
             val label = JLabel(MyBundle.message(p.labelKey) + if (p.required) " *" else "")
-            paramPanel.add(label, gbc)
+            paramsPanel.add(label, gbc)
             gbc.gridx = 1
             val component: JComponent = when (p.type) {
-                ParameterType.STRING -> JBTextField(p.defaultValue as? String ?: "")
+                ParameterType.STRING -> JBTextField((p.defaultValue as? String) ?: "")
                 ParameterType.BOOLEAN -> JBCheckBox().apply { isSelected = (p.defaultValue as? Boolean) ?: false }
                 ParameterType.INTEGER -> JBTextField((p.defaultValue as? Int)?.toString() ?: "")
             }
+            // Listener updates preview visibility
+            when (component) {
+                is JBTextField -> component.document.addDocumentListener(simpleDocListener { evaluatePreviewVisibility() })
+                is JBCheckBox -> component.addItemListener { evaluatePreviewVisibility() }
+            }
             fieldComponents[p.id] = component
-            paramPanel.add(component, gbc)
+            paramsPanel.add(component, gbc)
             gbc.gridy++
         }
-        paramPanel.revalidate(); paramPanel.repaint()
+        paramsPanel.revalidate(); paramsPanel.repaint()
+        evaluatePreviewVisibility() // Initial evaluation
     }
 
-    fun getSelectedGenerator(): PatternGenerator? = patternCombo.selectedItem as? PatternGenerator
+    private fun evaluatePreviewVisibility() {
+        if (!patternChosen) return
+        if (!previewToggle.isSelected) {
+            if (previewShown) hidePreview()
+            return
+        }
+        // Ensure container exists
+        if (!previewShown) showPreview()
+        // Schedule debounced content update
+        previewUpdateTimer.restart()
+    }
+
+    private fun performPreviewUpdate() {
+        val gen = getSelectedGenerator() ?: return
+        val values = getValues()
+        val missing = gen.parameters.filter { it.required && (values[it.id] == null || (values[it.id] is String && (values[it.id] as String).isBlank())) }
+        val text = if (missing.isNotEmpty()) {
+            "// " + MyBundle.message("preview.notReady", missing.joinToString { it.id }) + "\n"
+        } else {
+            (gen as? BaseJavaPatternGenerator)?.preview(values) ?: "// Preview not available"
+        }
+        previewArea.text = text
+        // Removed caretPosition adjustment
+    }
+
+    private fun showPreview() {
+        previewShown = true
+        if (previewContainer == null) {
+            previewContainer = JBScrollPane(previewArea).apply {
+                border = JBUI.Borders.emptyTop(6)
+                verticalScrollBar.unitIncrement = 16
+                preferredSize = Dimension(600, 240)
+            }
+            contentHolder.add(previewContainer!!, BorderLayout.SOUTH)
+            resizeForParameters(getSelectedGenerator()?.parameters?.size ?: 0, includePreview = true)
+            contentHolder.revalidate(); contentHolder.repaint(); window?.pack()
+        }
+    }
+
+    private fun hidePreview() {
+        previewShown = false
+        previewContainer?.let { contentHolder.remove(it) }
+        previewContainer = null
+        resizeForParameters(getSelectedGenerator()?.parameters?.size ?: 0, includePreview = false)
+        contentHolder.revalidate(); contentHolder.repaint(); window?.pack()
+    }
+
+    private fun resizeForParameters(paramCount: Int, includePreview: Boolean) {
+        val baseTop = 140
+        val perRow = 30
+        val paramsHeight = if (patternChosen) (paramCount * perRow) else 0
+        val previewExtra = if (includePreview) 260 else 0
+        val total = baseTop + paramsHeight + previewExtra
+        val clamped = total.coerceIn(140, 800)
+        val width = if (includePreview) 780 else 540
+        centerRootPanel?.preferredSize = Dimension(width, clamped)
+    }
+
+    private fun categorize(gen: PatternGenerator): PatternCategory = when (gen.id.lowercase()) {
+        "singleton", "builder", "factory", "abstractfactory", "prototype" -> PatternCategory.CREATIONAL
+        "adapter", "bridge", "composite", "decorator", "facade", "flyweight", "proxy" -> PatternCategory.STRUCTURAL
+        "strategy", "observer", "command", "state", "iterator", "mediator", "memento", "visitor", "chainofresponsibility", "template", "testpattern" -> PatternCategory.BEHAVIORAL
+        else -> PatternCategory.CREATIONAL
+    }
+
+    private fun patternIcon(gen: PatternGenerator): Icon = when (categorize(gen)) {
+        PatternCategory.CREATIONAL -> AllIcons.Nodes.Class
+        PatternCategory.STRUCTURAL -> AllIcons.Nodes.AbstractClass
+        PatternCategory.BEHAVIORAL -> AllIcons.Nodes.Interface
+    }
+
+    fun getSelectedGenerator(): PatternGenerator? = (patternCombo.selectedItem as? GeneratorEntry)?.generator
 
     fun getValues(): Map<String, Any> {
         val g = getSelectedGenerator() ?: return emptyMap()
@@ -86,5 +253,11 @@ class PatternGenerationDialog(private val project: Project, private val generato
             if (value != null) result[p.id] = value
         }
         return result
+    }
+
+    private fun simpleDocListener(onChange: () -> Unit) = object : javax.swing.event.DocumentListener {
+        override fun insertUpdate(e: javax.swing.event.DocumentEvent?) = onChange()
+        override fun removeUpdate(e: javax.swing.event.DocumentEvent?) = onChange()
+        override fun changedUpdate(e: javax.swing.event.DocumentEvent?) = onChange()
     }
 }
