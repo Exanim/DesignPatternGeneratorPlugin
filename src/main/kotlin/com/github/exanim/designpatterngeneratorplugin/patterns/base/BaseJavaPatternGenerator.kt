@@ -22,4 +22,6 @@ abstract class BaseJavaPatternGenerator : PatternGenerator {
     protected open fun generationCommandName(values: Map<String, Any>) = "Generate Pattern: ${id}"
     protected abstract fun targetFileName(values: Map<String, Any>): String?
     protected abstract fun buildJavaSource(values: Map<String, Any>): String
+    // Public preview API for UI code preview
+    open fun preview(values: Map<String, Any>): String = buildJavaSource(values)
 }

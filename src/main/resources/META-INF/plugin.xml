@@ -22,7 +22,10 @@
     <!-- Register built-in pattern generator implementation -->
     <extensions defaultExtensionNs="com.github.exanim.designpatterngeneratorplugin">
         <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.singleton.SingletonPatternGenerator"/>
-        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.test.TestPatternGenerator"/>
+        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.testPattern.TestPatternGenerator"/>
+        <!-- Added structural and behavioral generators -->
+        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.adapter.AdapterPatternGenerator"/>
+        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.strategy.StrategyPatternGenerator"/>
     </extensions>
 
     <actions>

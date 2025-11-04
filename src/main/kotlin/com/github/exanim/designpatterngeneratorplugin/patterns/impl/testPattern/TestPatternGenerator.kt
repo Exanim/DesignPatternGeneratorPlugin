@@ -1,4 +1,4 @@
-package com.github.exanim.designpatterngeneratorplugin.patterns.impl.test
+package com.github.exanim.designpatterngeneratorplugin.patterns.impl.testPattern
 
 import com.github.exanim.designpatterngeneratorplugin.patterns.api.ParameterType
 import com.github.exanim.designpatterngeneratorplugin.patterns.api.PatternParameter
