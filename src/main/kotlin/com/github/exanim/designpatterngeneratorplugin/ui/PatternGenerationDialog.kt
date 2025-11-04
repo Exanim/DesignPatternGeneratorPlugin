@@ -20,7 +20,6 @@ import java.awt.event.ItemEvent
 import javax.swing.*
 import javax.swing.Timer
 
-// Pattern categories (simple heuristic mapping for now)
 enum class PatternCategory { CREATIONAL, STRUCTURAL, BEHAVIORAL }
 
 private sealed interface PatternComboItem
@@ -40,7 +39,6 @@ class PatternGenerationDialog(private val project: Project, generators: List<Pat
     private val previewDoc = com.intellij.openapi.editor.EditorFactory.getInstance().createDocument("// Code preview will appear when all mandatory fields are filled\n")
     private val previewArea: EditorTextField = EditorTextField(previewDoc, project, JavaFileType.INSTANCE, true, false).apply {
         border = JBUI.Borders.empty(6)
-        // Removed isOneLineMode (protected)
     }
 
     private val patternItems: List<PatternComboItem> = buildList {
@@ -142,7 +140,7 @@ class PatternGenerationDialog(private val project: Project, generators: List<Pat
     private fun buildParametersUI(generator: PatternGenerator) {
         paramsPanel.removeAll(); fieldComponents.clear(); previewContainer = null
         val gbc = GridBagConstraints().apply {
-            gridx = 0; gridy = 0; weightx = 1.0; insets = JBUI.insets(2,6,2,6); anchor = GridBagConstraints.WEST; fill = GridBagConstraints.HORIZONTAL
+            gridx = 0; gridy = 0; weightx = 1.0; insets = JBUI.insets(2, 6); anchor = GridBagConstraints.WEST; fill = GridBagConstraints.HORIZONTAL
         }
         for (p in generator.parameters) {
             gbc.gridx = 0
