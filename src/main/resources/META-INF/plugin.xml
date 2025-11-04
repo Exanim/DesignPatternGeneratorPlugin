@@ -19,12 +19,13 @@
         <toolWindow factoryClass="com.github.exanim.designpatterngeneratorplugin.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
         <postStartupActivity implementation="com.github.exanim.designpatterngeneratorplugin.startup.MyProjectActivity" />
     </extensions>
-    <!-- Register built-in pattern generator implementation -->
+    <!-- Register pattern generator implementations -->
     <extensions defaultExtensionNs="com.github.exanim.designpatterngeneratorplugin">
+        <!-- Creational -->
         <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.singleton.SingletonPatternGenerator"/>
-        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.testPattern.TestPatternGenerator"/>
-        <!-- Added structural and behavioral generators -->
+        <!-- Structural -->
         <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.adapter.AdapterPatternGenerator"/>
+        <!-- Behavioural -->
         <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.strategy.StrategyPatternGenerator"/>
     </extensions>
 
