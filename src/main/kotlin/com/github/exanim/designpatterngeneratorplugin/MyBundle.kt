@@ -1,20 +1,25 @@
 package com.github.exanim.designpatterngeneratorplugin
 
-import com.intellij.DynamicBundle
-import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.PropertyKey
+import java.text.MessageFormat
+import java.util.*
 
-@NonNls
-private const val BUNDLE = "messages.MyBundle"
+/** Message bundle access helper for localized plugin strings. */
+object MyBundle {
+    private const val BUNDLE = "messages.MyBundle"
+    private val bundle: ResourceBundle by lazy { ResourceBundle.getBundle(BUNDLE) }
 
-object MyBundle : DynamicBundle(BUNDLE) {
-
+    /**
+     * Resolve a message by key optionally formatting with params.
+     */
     @JvmStatic
-    fun message(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any) =
-        getMessage(key, *params)
-
-    @Suppress("unused")
-    @JvmStatic
-    fun messagePointer(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any) =
-        getLazyMessage(key, *params)
+    fun message(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any?): String {
+        return try {
+            val pattern = bundle.getString(key)
+            if (params.isEmpty()) pattern else MessageFormat.format(pattern, *params)
+        } catch (e: MissingResourceException) {
+            "!$key!" // Fallback marker
+        }
+    }
 }
+

@@ -1,4 +1,50 @@
-# Qodana configuration:
+plugins {
+    kotlin("jvm") version "1.9.25"
+    id("org.jetbrains.intellij.platform") version "2.1.0"
+}
+
+kotlin {
+    jvmToolchain(21)
+}
+
+intellijPlatform {
+    defaultRepositories()
+    jetbrainsMarketplace()
+    pluginVerification {}
+    buildSearchableOptions = false
+    sandboxContainer = file(".sandbox")
+    instrumentCode = true
+    plugins {
+        bundled("com.intellij.java")
+        bundled("org.jetbrains.kotlin")
+    }
+}
+
+dependencies {
+    intellijPlatform {
+        create("IC", "2024.3")
+    }
+    testImplementation(kotlin("test"))
+}
+
+tasks {
+    runIde {
+        // Optional: pass JVM args if needed
+    }
+    test {
+        useJUnitPlatform()
+    }
+    patchPluginXml {
+        sinceBuild.set("243")
+        untilBuild.set("")
+    }
+    signPlugin {
+        enabled = false
+    }
+    publishPlugin {
+        enabled = false
+    }
+}# Qodana configuration:
 # https://www.jetbrains.com/help/qodana/qodana-yaml.html
 
 version: "1.0"
