@@ -22,12 +22,13 @@
     <!-- Register built-in pattern generator implementation -->
     <extensions defaultExtensionNs="com.github.exanim.designpatterngeneratorplugin">
         <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.singleton.SingletonPatternGenerator"/>
+        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.test.TestPatternGenerator"/>
     </extensions>
 
     <actions>
         <action id="com.github.exanim.designpatterngeneratorplugin.actions.GenerateDesignPatternAction"
                 class="com.github.exanim.designpatterngeneratorplugin.actions.GenerateDesignPatternAction"
-                text="Generate Design Pattern" description="Generate a Java design pattern skeleton based on parameters">
+        >
             <add-to-group group-id="ToolsMenu" anchor="last"/>
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
         </action>
