@@ -8,11 +8,29 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiFileFactory
 
-/** Represents a single generated Java source file. */
+/**
+ * Represents a single generated Java source file.
+ *
+ * @property fileName The name of the generated file.
+ * @property source The source code content of the file.
+ * @property packageName The package name where the file should be placed, or null if no package is specified.
+ */
 data class JavaGeneratedFile(val fileName: String, val source: String, val packageName: String?)
 
-/** Template Method base for Java pattern generators supporting single or multi-file generation. */
+/**
+ * Base class for Java pattern generators that support single or multi-file generation.
+ * Implements the Template Method design pattern to define the workflow for generating files.
+ */
 abstract class BaseJavaPatternGenerator : PatternGenerator {
+
+    /**
+     * Generates Java source files based on the provided values and writes them to the target directory.
+     *
+     * @param project The current IntelliJ IDEA project.
+     * @param targetDirectory The directory where the generated files will be placed.
+     * @param editor The current editor instance, or null if not applicable.
+     * @param values A map of user-provided values used to customize the generated files.
+     */
     final override fun generate(project: Project, targetDirectory: PsiDirectory, editor: Editor?, values: Map<String, Any>) {
         val files = buildFiles(values)
         if (files.isEmpty()) return
@@ -26,20 +44,30 @@ abstract class BaseJavaPatternGenerator : PatternGenerator {
         }
     }
 
-    /** Default single-file implementation built from subclass hooks. */
-    protected open fun buildFiles(values: Map<String, Any>): List<JavaGeneratedFile> {
-        val name = targetFileName(values) ?: return emptyList()
-        val src = buildJavaSource(values)
-        val pkg = values["packageName"] as? String
-        return listOf(JavaGeneratedFile(name, src, pkg))
-    }
+    /**
+     * Abstract method to be implemented by subclasses to define the files to be generated.
+     *
+     * @param values A map of user-provided values used to customize the generated files.
+     * @return A list of `JavaGeneratedFile` objects representing the files to be generated.
+     */
+    protected abstract fun buildFiles(values: Map<String, Any>): List<JavaGeneratedFile>
 
-    protected abstract fun targetFileName(values: Map<String, Any>): String?
-    protected abstract fun buildJavaSource(values: Map<String, Any>): String
-    protected open fun generationCommandName(values: Map<String, Any>) = "Generate Pattern: ${id}"
-    /** Preview combines multiple files separated by headers. */
+    /**
+     * Generates a preview of the files to be created, combining multiple files with headers.
+     *
+     * @param values A map of user-provided values used to customize the generated files.
+     * @return A string representation of the preview, with each file's content preceded by its name.
+     */
     open fun preview(values: Map<String, Any>): String = buildFiles(values).joinToString("\n\n") { "// ${it.fileName}\n${it.source}" }
 
+    /**
+     * Ensures that the specified package directory exists within the given root directory.
+     * Creates subdirectories as needed to match the package structure.
+     *
+     * @param root The root directory where the package structure should be created.
+     * @param packageName The fully qualified package name (e.g., "com.example.myapp").
+     * @return The `PsiDirectory` corresponding to the created or existing package directory.
+     */
     private fun ensurePackageDirectory(root: PsiDirectory, packageName: String): PsiDirectory {
         val parts = packageName.split('.').filter { it.isNotBlank() }
         var current = root

@@ -4,6 +4,7 @@ import com.github.exanim.designpatterngeneratorplugin.patterns.api.PatternParame
 import com.github.exanim.designpatterngeneratorplugin.patterns.api.ParameterType
 import com.github.exanim.designpatterngeneratorplugin.patterns.base.BaseJavaPatternGenerator
 import com.github.exanim.designpatterngeneratorplugin.codegen.*
+import com.github.exanim.designpatterngeneratorplugin.patterns.base.JavaGeneratedFile
 
 /** Basic Singleton pattern generator implementation using Builder + Composite for source assembly. */
 class SingletonPatternGenerator : BaseJavaPatternGenerator() {
@@ -17,11 +18,9 @@ class SingletonPatternGenerator : BaseJavaPatternGenerator() {
         PatternParameter("lazy", "pattern.parameters.lazy", ParameterType.BOOLEAN, required = false, defaultValue = true)
     )
 
-    override fun targetFileName(values: Map<String, Any>): String? = (values["className"] as? String)?.let { "$it.java" }
-
-    override fun buildJavaSource(values: Map<String, Any>): String {
-        val pkg = values["packageName"] as? String ?: return ""
-        val className = values["className"] as? String ?: return ""
+    override fun buildFiles(values: Map<String, Any>): List<JavaGeneratedFile> {
+        val pkg = values["packageName"] as? String ?: return emptyList()
+        val className = values["className"] as? String ?: return emptyList()
         val threadSafe = values["threadSafe"] as? Boolean ?: true
         val lazyInit = values["lazy"] as? Boolean ?: true
 
@@ -51,6 +50,8 @@ class SingletonPatternGenerator : BaseJavaPatternGenerator() {
             getInstanceMethod.addBodyLine("return INSTANCE;")
         }
         classBuilder.addMethod(getInstanceMethod.build())
-        return JavaFileSpec(pkg, classBuilder.build()).render()
+
+        val source = JavaFileSpec(pkg, classBuilder.build()).render()
+        return listOf(JavaGeneratedFile("$className.java", source, pkg))
     }
 }

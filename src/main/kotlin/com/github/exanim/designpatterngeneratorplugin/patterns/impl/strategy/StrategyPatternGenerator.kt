@@ -17,11 +17,6 @@ class StrategyPatternGenerator : BaseJavaPatternGenerator() {
         PatternParameter("methodName", "pattern.parameters.methodName", ParameterType.STRING, required = true, defaultValue = "execute")
     )
 
-    // Unused in multi-file scenario, but still required by base template
-    override fun targetFileName(values: Map<String, Any>): String? = (values["contextClassName"] as? String)?.let { "$it.java" }
-
-    override fun buildJavaSource(values: Map<String, Any>): String = "" // Not used; multi-file generation below
-
     override fun buildFiles(values: Map<String, Any>): List<JavaGeneratedFile> {
         val pkg = values["packageName"] as? String ?: return emptyList()
         val iface = values["strategyInterfaceName"] as? String ?: return emptyList()
