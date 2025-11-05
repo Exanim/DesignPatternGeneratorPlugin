@@ -9,7 +9,7 @@ import javax.swing.JPanel
 
 class MyToolWindowFactory : ToolWindowFactory {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-        val panel = JPanel().apply { add(JBLabel("Design Pattern Generator")) }
+        val panel = JPanel().apply { add(JBLabel("Design pattern generator")) }
         val content = ContentFactory.getInstance().createContent(panel, null, false)
         toolWindow.contentManager.addContent(content)
     }

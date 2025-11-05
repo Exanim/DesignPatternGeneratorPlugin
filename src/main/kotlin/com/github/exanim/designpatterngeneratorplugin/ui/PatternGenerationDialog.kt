@@ -15,6 +15,7 @@ import com.intellij.ui.components.JBTextField
 import com.intellij.ui.EditorTextField
 import com.intellij.util.ui.JBUI
 import com.intellij.icons.AllIcons
+import com.intellij.ui.components.JBTabbedPane
 import java.awt.*
 import java.awt.event.ItemEvent
 import javax.swing.*
@@ -95,6 +96,10 @@ class PatternGenerationDialog(private val project: Project, generators: List<Pat
     private val fieldComponents = LinkedHashMap<String, JComponent>()
 
     private val contentHolder = JPanel(BorderLayout())
+
+    // Last preview segments for graphing
+    private var lastPreviewSegments: List<Pair<String,String>> = emptyList() // fileName to body
+    private var graphButton: JButton? = null
 
     init {
         title = MyBundle.message("dialog.patternGenerator.title")
@@ -199,7 +204,6 @@ class PatternGenerationDialog(private val project: Project, generators: List<Pat
         for (line in lines) {
             val match = headerRegex.matchEntire(line)
             if (match != null) {
-                // Start new block
                 current = match.groupValues[1] to mutableListOf()
                 fileBlocks += current
             } else {
@@ -207,20 +211,43 @@ class PatternGenerationDialog(private val project: Project, generators: List<Pat
             }
         }
         if (fileBlocks.size <= 1) {
-            // Single file or placeholder; show raw combined text
+            lastPreviewSegments = listOf("Preview.java" to combined)
             previewArea.text = combined
             previewContainer?.viewport?.view = previewArea
+            ensureGraphButton()
             return
         }
-        val tabs = JTabbedPane()
-        for ((fileName, bodyLines) in fileBlocks) {
-            val body = bodyLines.joinToString("\n").trimEnd()
+        lastPreviewSegments = fileBlocks.map { it.first to it.second.joinToString("\n") }
+        val tabs = JBTabbedPane()
+        for ((fileName, body) in lastPreviewSegments) {
             val doc = com.intellij.openapi.editor.EditorFactory.getInstance().createDocument(body.ifBlank { "// Empty file" })
             val field = EditorTextField(doc, project, JavaFileType.INSTANCE, true, false)
             field.border = JBUI.Borders.empty(4)
             tabs.addTab(fileName, JBScrollPane(field))
         }
         previewContainer?.viewport?.view = tabs
+        ensureGraphButton()
+    }
+
+    private fun ensureGraphButton() {
+        if (graphButton != null) return
+        graphButton = JButton(MyBundle.message("label.parameters") + " Graph").apply {
+            toolTipText = "Show class relationship graph for generated code"
+            addActionListener { openGraphDialog() }
+        }
+        // Add button to South of paramsScroll wrapper if preview shown
+        (contentHolder.layout as? BorderLayout)?.let {
+            // Insert into EAST side (stack panel)
+            val eastPanel = JPanel().apply { layout = BoxLayout(this, BoxLayout.Y_AXIS); add(graphButton); border = JBUI.Borders.empty(4) }
+            contentHolder.add(eastPanel, BorderLayout.EAST)
+            contentHolder.revalidate(); contentHolder.repaint()
+        }
+    }
+
+    private fun openGraphDialog() {
+        if (lastPreviewSegments.isEmpty()) return
+        val dialog = PatternGraphDialog(project, lastPreviewSegments)
+        dialog.show()
     }
 
     private fun showPreview() {
