@@ -35,7 +35,7 @@ private class GraphCanvas(private val segments: List<Pair<String,String>>) : JPa
     private fun parseSegments() {
         // Naive Java parsing: capture class declarations, fields, and method signatures at top-level
         val classRegex = Regex("class\\s+(\\w+)")
-        val fieldRegex = Regex("(private|public|protected)\\s+[\\w<>\\[\\]]+\\s+(\\w+)\\s*(=|;)")
+        val fieldRegex = Regex("(private|public|protected)\\s+[\\w<>\\[\\]]+\\s+(\\w+)\\s*([=;])")
         val methodRegex = Regex("(public|private|protected)\\s+[\\w<>\\[\\]]+\\s+(\\w+)\\s*\\(")
         for ((_, body) in segments) {
             val classMatch = classRegex.find(body) ?: continue
