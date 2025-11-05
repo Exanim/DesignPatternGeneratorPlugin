@@ -29,7 +29,7 @@ private class GraphCanvas(private val segments: List<Pair<String,String>>) : JPa
         border = JBUI.Borders.empty(12)
         parseSegments()
         layoutGraph()
-        preferredSize = Dimension(800, 480)
+        preferredSize = Dimension(800, 380)
     }
 
     private fun parseSegments() {

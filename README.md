@@ -25,6 +25,23 @@ This specific section is a source for the [plugin.xml](/src/main/resources/META-
 To keep everything working, do not remove `<!-- ... -->` sections. 
 <!-- Plugin description end -->
 
+## Usage
+
+The Design Pattern Generator can be accessed in three ways:
+
+1. **Keyboard Shortcut**: Press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>G</kbd> (configurable in Settings > Keymap)
+2. **Tools Menu**: Go to <kbd>Tools</kbd> > <kbd>Generate Design Pattern</kbd>
+3. **Context Menu**: Right-click in the editor or project tree and select <kbd>Generate Design Pattern</kbd>
+
+### Configuring the Keyboard Shortcut
+
+To customize the keyboard shortcut:
+
+1. Open <kbd>Settings/Preferences</kbd> > <kbd>Keymap</kbd>
+2. Search for "Generate Design Pattern"
+3. Right-click on the action and select "Add Keyboard Shortcut"
+4. Set your preferred key combination
+
 ## Installation
 
 - Using the IDE built-in plugin system:
