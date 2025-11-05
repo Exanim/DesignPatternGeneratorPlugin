@@ -2,6 +2,7 @@ package com.github.exanim.designpatterngeneratorplugin.ui
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import javax.swing.*
@@ -9,7 +10,7 @@ import java.awt.*
 import java.awt.geom.Line2D
 
 /** Dialog showing a simple class-method-field graph parsed from generated preview segments. */
-class PatternGraphDialog(private val project: Project, private val segments: List<Pair<String,String>>) : DialogWrapper(project) {
+class PatternGraphDialog(project: Project, private val segments: List<Pair<String, String>>) : DialogWrapper(project) {
     init { title = "Pattern Graph"; init() }
 
     override fun createCenterPanel(): JComponent = GraphCanvas(segments)
@@ -74,7 +75,7 @@ private class GraphCanvas(private val segments: List<Pair<String,String>>) : JPa
     }
 
     private fun paintDottedBackground(g2: Graphics2D) {
-        g2.color = JBColor(Color(230,230,230), Color(60,60,60))
+        g2.color = JBColor(Gray._230, Gray._60)
         val step = 16
         for (y in 0 until height step step) {
             for (x in 0 until width step step) {
@@ -86,7 +87,7 @@ private class GraphCanvas(private val segments: List<Pair<String,String>>) : JPa
     private fun paintNodes(g2: Graphics2D) {
         for (n in nodes) {
             val rect = boxBounds[n]!!
-            g2.color = JBColor(Color(250,250,250), Color(70,70,70))
+            g2.color = JBColor(Gray._250, Gray._70)
             g2.fillRect(rect.x, rect.y, rect.width, rect.height)
             g2.color = JBColor.GRAY
             g2.drawRect(rect.x, rect.y, rect.width, rect.height)
@@ -137,7 +138,7 @@ private class GraphCanvas(private val segments: List<Pair<String,String>>) : JPa
     private fun paintLegend(g2: Graphics2D) {
         val legendW = 160; val legendH = 70
         val x = width - legendW - 20; val y = 20
-        g2.color = JBColor(Color(250,250,250), Color(55,55,55))
+        g2.color = JBColor(Gray._250, Gray._55)
         g2.fillRect(x, y, legendW, legendH)
         g2.color = JBColor.GRAY
         g2.drawRect(x, y, legendW, legendH)

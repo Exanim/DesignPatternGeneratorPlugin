@@ -231,7 +231,7 @@ class PatternGenerationDialog(private val project: Project, generators: List<Pat
 
     private fun ensureGraphButton() {
         if (graphButton != null) return
-        graphButton = JButton(MyBundle.message("label.parameters") + " Graph").apply {
+        graphButton = JButton(MyBundle.message("label.graphTitle")).apply {
             toolTipText = "Show class relationship graph for generated code"
             addActionListener { openGraphDialog() }
         }
