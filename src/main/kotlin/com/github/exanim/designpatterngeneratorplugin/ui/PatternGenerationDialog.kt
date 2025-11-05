@@ -100,6 +100,8 @@ class PatternGenerationDialog(private val project: Project, generators: List<Pat
     // Last preview segments for graphing
     private var lastPreviewSegments: List<Pair<String,String>> = emptyList() // fileName to body
     private var graphButton: JButton? = null
+    private var graphDialog: PatternGraphDialog? = null
+    private var paramsHeaderPanel: JPanel? = null
 
     init {
         title = MyBundle.message("dialog.patternGenerator.title")
@@ -129,12 +131,18 @@ class PatternGenerationDialog(private val project: Project, generators: List<Pat
 
     private fun buildParameterPhase() {
         contentHolder.removeAll(); fieldComponents.clear(); previewShown = false
+        graphDialog = null
         val generator = getSelectedGenerator() ?: return
         buildParametersUI(generator)
-        // Add preview toggle above parameters
+        // Header with preview toggle (west) and graph button (east)
+        paramsHeaderPanel = JPanel(BorderLayout()).apply {
+            border = JBUI.Borders.empty(4)
+            add(previewToggle.apply { addItemListener { evaluatePreviewVisibility() } }, BorderLayout.WEST)
+            add(buildGraphButtonHolder(), BorderLayout.EAST)
+        }
         val wrapper = JPanel(BorderLayout()).apply {
             border = JBUI.Borders.empty()
-            add(previewToggle.apply { addItemListener { evaluatePreviewVisibility() } }, BorderLayout.NORTH)
+            add(paramsHeaderPanel, BorderLayout.NORTH)
             add(paramsScroll, BorderLayout.CENTER)
         }
         contentHolder.add(wrapper, BorderLayout.CENTER)
@@ -168,6 +176,22 @@ class PatternGenerationDialog(private val project: Project, generators: List<Pat
         }
         paramsPanel.revalidate(); paramsPanel.repaint()
         evaluatePreviewVisibility() // Initial evaluation
+    }
+
+    private fun buildGraphButtonHolder(): JComponent {
+        if (graphButton == null) {
+            graphButton = JButton(MyBundle.message("label.graphTitle")).apply {
+                toolTipText = "Show class relationship graph for generated code"
+                addActionListener { openGraphDialog() }
+                isEnabled = lastPreviewSegments.isNotEmpty()
+            }
+        }
+        val panel = JPanel().apply {
+            layout = BoxLayout(this, BoxLayout.X_AXIS)
+            border = JBUI.Borders.emptyLeft(8)
+            add(graphButton)
+        }
+        return panel
     }
 
     private fun evaluatePreviewVisibility() {
@@ -214,7 +238,8 @@ class PatternGenerationDialog(private val project: Project, generators: List<Pat
             lastPreviewSegments = listOf("Preview.java" to combined)
             previewArea.text = combined
             previewContainer?.viewport?.view = previewArea
-            ensureGraphButton()
+            graphButton?.isEnabled = lastPreviewSegments.isNotEmpty()
+            graphDialog?.updateSegments(lastPreviewSegments)
             return
         }
         lastPreviewSegments = fileBlocks.map { it.first to it.second.joinToString("\n") }
@@ -226,27 +251,21 @@ class PatternGenerationDialog(private val project: Project, generators: List<Pat
             tabs.addTab(fileName, JBScrollPane(field))
         }
         previewContainer?.viewport?.view = tabs
-        ensureGraphButton()
-    }
-
-    private fun ensureGraphButton() {
-        if (graphButton != null) return
-        graphButton = JButton(MyBundle.message("label.graphTitle")).apply {
-            toolTipText = "Show class relationship graph for generated code"
-            addActionListener { openGraphDialog() }
-        }
-        // Add button to South of paramsScroll wrapper if preview shown
-        (contentHolder.layout as? BorderLayout)?.let {
-            // Insert into EAST side (stack panel)
-            val eastPanel = JPanel().apply { layout = BoxLayout(this, BoxLayout.Y_AXIS); add(graphButton); border = JBUI.Borders.empty(4) }
-            contentHolder.add(eastPanel, BorderLayout.EAST)
-            contentHolder.revalidate(); contentHolder.repaint()
-        }
+        graphButton?.isEnabled = lastPreviewSegments.isNotEmpty()
+        graphDialog?.updateSegments(lastPreviewSegments)
     }
 
     private fun openGraphDialog() {
         if (lastPreviewSegments.isEmpty()) return
+        // Reuse existing dialog if open
+        val existing = graphDialog
+        if (existing != null && existing.isShowing) {
+            existing.updateSegments(lastPreviewSegments)
+            existing.toFront()
+            return
+        }
         val dialog = PatternGraphDialog(project, lastPreviewSegments)
+        graphDialog = dialog
         dialog.show()
     }
 
@@ -304,9 +323,9 @@ class PatternGenerationDialog(private val project: Project, generators: List<Pat
         for (p in g.parameters) {
             val comp = fieldComponents[p.id]
             val value: Any? = when (p.type) {
-                ParameterType.STRING -> (comp as JBTextField).text.trim()
-                ParameterType.BOOLEAN -> (comp as JBCheckBox).isSelected
-                ParameterType.INTEGER -> (comp as JBTextField).text.trim().toIntOrNull() ?: 0
+                ParameterType.STRING -> (comp as JBTextField).text.trim().also { scheduleGraphRefresh() }
+                ParameterType.BOOLEAN -> (comp as JBCheckBox).isSelected.also { scheduleGraphRefresh() }
+                ParameterType.INTEGER -> (comp as JBTextField).text.trim().toIntOrNull()?.also { scheduleGraphRefresh() } ?: 0
             }
             if (value != null) result[p.id] = value
         }
@@ -317,5 +336,10 @@ class PatternGenerationDialog(private val project: Project, generators: List<Pat
         override fun insertUpdate(e: javax.swing.event.DocumentEvent?) = onChange()
         override fun removeUpdate(e: javax.swing.event.DocumentEvent?) = onChange()
         override fun changedUpdate(e: javax.swing.event.DocumentEvent?) = onChange()
+    }
+
+    private fun scheduleGraphRefresh() {
+        // Update graph dialog's segments if open (no parsing, just reusing lastPreviewSegments)
+        graphDialog?.updateSegments(lastPreviewSegments)
     }
 }
