@@ -37,11 +37,17 @@
 
     <actions>
         <action id="com.github.exanim.designpatterngeneratorplugin.actions.GenerateDesignPatternAction"
-                class="com.github.exanim.designpatterngeneratorplugin.actions.GenerateDesignPatternAction"
-        >
+                class="com.github.exanim.designpatterngeneratorplugin.actions.GenerateDesignPatternAction">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
             <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt G"/>
+        </action>
+        <action id="com.github.exanim.designpatterngeneratorplugin.actions.GenerateAllDesignPatternsAction"
+                class="com.github.exanim.designpatterngeneratorplugin.actions.GenerateAllDesignPatternsAction"
+                text="Generate All Design Patterns" description="Generate all supported design patterns with defaults">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt shift G"/>
         </action>
     </actions>
 </idea-plugin>

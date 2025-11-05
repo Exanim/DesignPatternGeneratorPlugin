@@ -119,7 +119,6 @@ class PatternGenerationDialog(private val project: Project, generators: List<Pat
         }
         root.add(top, BorderLayout.NORTH)
         root.add(contentHolder, BorderLayout.CENTER)
-        // Initial minimal size
         root.preferredSize = Dimension(520, 80)
         return root
     }
