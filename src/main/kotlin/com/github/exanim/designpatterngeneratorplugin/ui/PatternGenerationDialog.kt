@@ -21,7 +21,7 @@ import java.awt.event.ItemEvent
 import javax.swing.*
 import javax.swing.Timer
 
-enum class PatternCategory { CREATIONAL, STRUCTURAL, BEHAVIORAL }
+enum class PatternCategory { CREATIONAL, STRUCTURAL, BEHAVIORAL, COMPOSITE }
 
 private sealed interface PatternComboItem
 private data class CategoryHeader(val category: PatternCategory) : PatternComboItem
@@ -302,9 +302,14 @@ class PatternGenerationDialog(private val project: Project, generators: List<Pat
     }
 
     private fun categorize(gen: PatternGenerator): PatternCategory = when (gen.id.lowercase()) {
-        "singleton", "builder", "factory", "abstractfactory", "prototype" -> PatternCategory.CREATIONAL
+        // Creational
+        "singleton", "builder", "factory", "factorymethod", "abstractfactory", "prototype" -> PatternCategory.CREATIONAL
+        // Structural
         "adapter", "bridge", "composite", "decorator", "facade", "flyweight", "proxy" -> PatternCategory.STRUCTURAL
+        // Behavioral
         "strategy", "observer", "command", "state", "iterator", "mediator", "memento", "visitor", "chainofresponsibility", "template", "testpattern" -> PatternCategory.BEHAVIORAL
+        // Composite meta-patterns (pattern-of-patterns)
+        "undoablecommand" -> PatternCategory.COMPOSITE
         else -> PatternCategory.CREATIONAL
     }
 
@@ -312,6 +317,7 @@ class PatternGenerationDialog(private val project: Project, generators: List<Pat
         PatternCategory.CREATIONAL -> AllIcons.Nodes.Class
         PatternCategory.STRUCTURAL -> AllIcons.Nodes.AbstractClass
         PatternCategory.BEHAVIORAL -> AllIcons.Nodes.Interface
+        PatternCategory.COMPOSITE -> AllIcons.Nodes.Package // Using package icon for composite category
     }
 
     fun getSelectedGenerator(): PatternGenerator? = (patternCombo.selectedItem as? GeneratorEntry)?.generator
