@@ -1,4 +1,4 @@
-package com.github.exanim.designpatterngeneratorplugin.patterns.impl.factorymethod
+package com.github.exanim.designpatterngeneratorplugin.patterns.impl.creational.factorymethod
 
 import com.github.exanim.designpatterngeneratorplugin.patterns.api.PatternParameter
 import com.github.exanim.designpatterngeneratorplugin.patterns.api.ParameterType
@@ -115,4 +115,3 @@ class FactoryMethodPatternGenerator : BaseJavaPatternGenerator() {
         return files
     }
 }
-

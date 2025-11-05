@@ -1,4 +1,4 @@
-package com.github.exanim.designpatterngeneratorplugin.patterns.impl.singleton
+package com.github.exanim.designpatterngeneratorplugin.patterns.impl.creational.singleton
 
 import com.github.exanim.designpatterngeneratorplugin.patterns.api.PatternParameter
 import com.github.exanim.designpatterngeneratorplugin.patterns.api.ParameterType

@@ -1,4 +1,4 @@
-package com.github.exanim.designpatterngeneratorplugin.patterns.impl.decorator
+package com.github.exanim.designpatterngeneratorplugin.patterns.impl.structural.decorator
 
 import com.github.exanim.designpatterngeneratorplugin.patterns.api.PatternParameter
 import com.github.exanim.designpatterngeneratorplugin.patterns.api.ParameterType
@@ -118,4 +118,3 @@ class DecoratorPatternGenerator : BaseJavaPatternGenerator() {
         return files
     }
 }
-

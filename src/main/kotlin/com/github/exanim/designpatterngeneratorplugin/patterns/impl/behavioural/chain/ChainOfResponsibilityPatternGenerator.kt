@@ -1,4 +1,4 @@
-package com.github.exanim.designpatterngeneratorplugin.patterns.impl.chain
+package com.github.exanim.designpatterngeneratorplugin.patterns.impl.behavioural.chain
 
 import com.github.exanim.designpatterngeneratorplugin.patterns.api.PatternParameter
 import com.github.exanim.designpatterngeneratorplugin.patterns.api.ParameterType
@@ -109,4 +109,3 @@ class ChainOfResponsibilityPatternGenerator : BaseJavaPatternGenerator() {
         return files
     }
 }
-

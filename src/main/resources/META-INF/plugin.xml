@@ -22,17 +22,19 @@
     <!-- Register pattern generator implementations -->
     <extensions defaultExtensionNs="com.github.exanim.designpatterngeneratorplugin">
         <!-- Creational -->
-        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.singleton.SingletonPatternGenerator"/>
-        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.factorymethod.FactoryMethodPatternGenerator"/>
-        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.builder.BuilderPatternGenerator"/>
+        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.creational.singleton.SingletonPatternGenerator"/>
+        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.creational.factorymethod.FactoryMethodPatternGenerator"/>
+        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.creational.builder.BuilderPatternGenerator"/>
         <!-- Structural -->
-        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.adapter.AdapterPatternGenerator"/>
-        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.decorator.DecoratorPatternGenerator"/>
-        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.facade.FacadePatternGenerator"/>
+        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.structural.adapter.AdapterPatternGenerator"/>
+        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.structural.decorator.DecoratorPatternGenerator"/>
+        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.structural.facade.FacadePatternGenerator"/>
         <!-- Behavioural -->
-        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.strategy.StrategyPatternGenerator"/>
-        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.chain.ChainOfResponsibilityPatternGenerator"/>
-        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.observer.ObserverPatternGenerator"/>
+        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.behavioural.strategy.StrategyPatternGenerator"/>
+        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.behavioural.chain.ChainOfResponsibilityPatternGenerator"/>
+        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.behavioural.observer.ObserverPatternGenerator"/>
+        <!-- Composite Meta -->
+        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.composite.UndoableCommandCompositePatternGenerator"/>
     </extensions>
 
     <actions>
