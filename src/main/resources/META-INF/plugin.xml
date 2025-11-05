@@ -23,10 +23,13 @@
     <extensions defaultExtensionNs="com.github.exanim.designpatterngeneratorplugin">
         <!-- Creational -->
         <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.singleton.SingletonPatternGenerator"/>
+        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.factorymethod.FactoryMethodPatternGenerator"/>
         <!-- Structural -->
         <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.adapter.AdapterPatternGenerator"/>
+        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.decorator.DecoratorPatternGenerator"/>
         <!-- Behavioural -->
         <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.strategy.StrategyPatternGenerator"/>
+        <patternGenerator implementation="com.github.exanim.designpatterngeneratorplugin.patterns.impl.chain.ChainOfResponsibilityPatternGenerator"/>
     </extensions>
 
     <actions>
