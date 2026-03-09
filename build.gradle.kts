@@ -37,13 +37,3 @@ dependencies {
         bundledPlugins("com.intellij.java", "org.jetbrains.kotlin")
     }
 }
-
-tasks {
-    // Disable all test related tasks (unit & platform test framework)
-    withType<org.gradle.api.tasks.testing.Test> { enabled = false }
-    configureEach {
-        if (name.startsWith("compileTest") || name in listOf("instrumentTestCode", "prepareTestSandbox", "prepareTest")) {
-            enabled = false
-        }
-    }
-}
