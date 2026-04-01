@@ -1,6 +1,6 @@
 package com.github.exanim.designpatterngeneratorplugin.patterns
 
-import com.github.exanim.designpatterngeneratorplugin.patterns.impl.singleton.SingletonPatternGenerator
+import com.github.exanim.designpatterngeneratorplugin.patterns.impl.creational.singleton.SingletonPatternGenerator
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
