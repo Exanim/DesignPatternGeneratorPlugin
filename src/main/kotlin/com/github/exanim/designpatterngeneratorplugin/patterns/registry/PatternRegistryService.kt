@@ -11,26 +11,15 @@ import com.intellij.openapi.extensions.ExtensionPointName
 class PatternRegistryService {
     private val log = logger<PatternRegistryService>()
 
-    private val epName = ExtensionPointName<PatternGenerator>("com.github.exanim.designpatterngeneratorplugin.patternGenerator")
+    private val epName = ExtensionPointName<PatternGenerator>(
+        "com.github.exanim.designpatterngeneratorplugin.patternGenerator"
+    )
 
     fun all(): List<PatternGenerator> = epName.extensionList.also {
         if (it.isEmpty()) log.warn("No PatternGenerators registered yet")
     }
 
-    fun find(id: String): PatternGenerator? = all().find { it.id == id }
-
     companion object {
         fun getInstance(): PatternRegistryService = service()
-    }
-}
-
-/** Simple validation utilities. */
-object PatternValidation {
-    fun validateMandatory(parameters: List<PatternGenerator>, values: Map<String, Any?>): List<String> = buildList {
-        parameters.flatMap { it.parameters }.forEach { p ->
-            if (p.required && (values[p.id] == null || (values[p.id] is String && (values[p.id] as String).isBlank()))) {
-                add(p.id)
-            }
-        }
     }
 }

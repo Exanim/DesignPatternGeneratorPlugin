@@ -44,7 +44,7 @@ class BuilderPatternGenerator : BaseJavaPatternGenerator() {
             appendLine("    public void setPartA(String v){ partA=v; }")
             appendLine("    public void setPartB(String v){ partB=v; }")
             appendLine("    public void setPartC(String v){ partC=v; }")
-            appendLine("    @Override public String toString(){ return \"$product{\"+partA+','+partB+','+partC+'}\"; }")
+            appendLine("    @Override public String toString(){ return \"$product{\"+partA+','+partB+','+partC+'}'; }")
             appendLine("}")
         }
         files += JavaGeneratedFile("$product.java", productSrc, pkg)
@@ -103,8 +103,9 @@ class BuilderPatternGenerator : BaseJavaPatternGenerator() {
                 appendLine("public class $clientName {")
                 appendLine("    public static void main(String[] args){")
                 if (director != null) appendLine("        $director director = new $director();")
-                allBuilders.forEach { bn ->
-                    appendLine("        $builderIface builder = new $bn();")
+                allBuilders.forEachIndexed { index, bn ->
+                    val declaration = if (index == 0) "$builderIface " else ""
+                    appendLine("        ${declaration}builder = new $bn();")
                     if (director != null) {
                         appendLine("        System.out.println(director.construct(builder));")
                     } else {

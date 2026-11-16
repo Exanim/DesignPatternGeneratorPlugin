@@ -27,9 +27,13 @@ class GenerateDesignPatternAction : AnAction(
         val generator = view.getSelectedGenerator() ?: return
         val values = view.getValues()
 
-        val validation = ValidationChain(listOf(MandatoryParametersValidation)).run(generator, values)
+        val validation = ValidationChain(
+            listOf(MandatoryParametersValidation)
+        ).run(generator, values)
         if (!validation.ok) {
-            Messages.showErrorDialog(project, "Validation failed: ${validation.errors.joinToString()}", "Design Pattern Generation")
+            Messages.showErrorDialog(project,
+                "Validation failed: ${validation.errors.joinToString()}",
+                "Design Pattern Generation")
             return
         }
 

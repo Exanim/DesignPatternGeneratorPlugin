@@ -16,7 +16,12 @@ class JavaClassSpec private constructor(
     private val constructors: List<JavaConstructorSpec>
 ) {
     fun render(): String = buildString {
-        append(modifiers.joinToString(" ").takeIf { it.isNotBlank() }?.plus(" ") ?: "")
+        append(
+            modifiers.
+            joinToString(" ").
+            takeIf { it.isNotBlank() }?.
+            plus(" ") ?: ""
+        )
         append("class $name {\n")
         if (fields.isNotEmpty()) {
             fields.forEach { append("    ").append(it.render()).append("\n") }
@@ -40,9 +45,17 @@ class JavaClassSpec private constructor(
     }
 }
 
-class JavaFieldSpec(private val modifiers: List<String>, private val type: String, private val name: String, private val initializer: String? = null) {
+class JavaFieldSpec(private val modifiers: List<String>,
+                    private val type: String,
+                    private val name: String,
+                    private val initializer: String? = null) {
     fun render(): String = buildString {
-        append(modifiers.joinToString(" ").takeIf { it.isNotBlank() }?.plus(" ") ?: "")
+        append(
+            modifiers.
+            joinToString(" ").
+            takeIf { it.isNotBlank() }?.
+            plus(" ") ?: ""
+        )
         append("$type $name")
         if (initializer != null) append(" = $initializer")
         append(";")
@@ -58,7 +71,11 @@ class JavaMethodSpec private constructor(
 ) {
     fun render(): String = buildString {
         append("    ")
-        append(modifiers.joinToString(" ").takeIf { it.isNotBlank() }?.plus(" ") ?: "")
+        append(
+            modifiers.joinToString(" ").
+            takeIf { it.isNotBlank() }?.
+            plus(" ") ?: ""
+        )
         append("$returnType $name(")
         append(params.joinToString(", ") { (t, n) -> "$t $n" })
         append(") {\n")
@@ -71,7 +88,6 @@ class JavaMethodSpec private constructor(
         private val bodyLines = mutableListOf<String>()
         private val params = mutableListOf<Pair<String, String>>()
         fun addModifier(m: String) = apply { modifiers += m }
-        fun addParam(type: String, name: String) = apply { params += type to name }
         fun addBodyLine(line: String) = apply { bodyLines += line }
         fun build() = JavaMethodSpec(modifiers.toList(), returnType, name, bodyLines.toList(), params.toList())
     }
@@ -98,8 +114,6 @@ class JavaConstructorSpec private constructor(
         private val bodyLines = mutableListOf<String>()
         private val params = mutableListOf<Pair<String, String>>()
         fun addModifier(m: String) = apply { modifiers += m }
-        fun addParam(type: String, name: String) = apply { params += type to name }
-        fun addBodyLine(line: String) = apply { bodyLines += line }
         fun build() = JavaConstructorSpec(modifiers.toList(), name, bodyLines.toList(), params.toList())
     }
 }

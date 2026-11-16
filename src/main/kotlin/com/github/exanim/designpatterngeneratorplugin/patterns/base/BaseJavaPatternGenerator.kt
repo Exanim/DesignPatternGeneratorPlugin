@@ -31,15 +31,40 @@ abstract class BaseJavaPatternGenerator : PatternGenerator {
      * @param editor The current editor instance, or null if not applicable.
      * @param values A map of user-provided values used to customize the generated files.
      */
-    final override fun generate(project: Project, targetDirectory: PsiDirectory, editor: Editor?, values: Map<String, Any>) {
+    final override fun generate(
+        project: Project,
+        targetDirectory: PsiDirectory,
+        editor: Editor?,
+        values: Map<String, Any>,
+    ) {
         val files = buildFiles(values)
         if (files.isEmpty()) return
+
         WriteCommandAction.runWriteCommandAction(project) {
-            for (f in files) {
-                val pkgDir = f.packageName?.takeIf { it.isNotBlank() }?.let { ensurePackageDirectory(targetDirectory, it) } ?: targetDirectory
-                if (pkgDir.findFile(f.fileName) != null) continue
-                val psiFile = PsiFileFactory.getInstance(project).createFileFromText(f.fileName, JavaLanguage.INSTANCE, f.source)
-                pkgDir.add(psiFile)
+            for (file in files) {
+                val packageName = file.packageName
+                    ?.takeIf { it.isNotBlank() }
+                val outputDirectory = packageName
+                    ?.let {
+                        ensurePackageDirectory(
+                            targetDirectory,
+                            it,
+                        )
+                    }
+                    ?: targetDirectory
+
+                if (outputDirectory.findFile(file.fileName) != null) {
+                    continue
+                }
+
+                val psiFile = PsiFileFactory
+                    .getInstance(project)
+                    .createFileFromText(
+                        file.fileName,
+                        JavaLanguage.INSTANCE,
+                        file.source,
+                    )
+                outputDirectory.add(psiFile)
             }
         }
     }

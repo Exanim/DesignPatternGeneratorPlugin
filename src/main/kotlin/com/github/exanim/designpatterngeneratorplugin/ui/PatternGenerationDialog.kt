@@ -208,12 +208,17 @@ class PatternGenerationDialog(private val project: Project, generators: List<Pat
     private fun performPreviewUpdate() {
         val gen = getSelectedGenerator() ?: return
         val values = getValues()
-        val missing = gen.parameters.filter { it.required && (values[it.id] == null || (values[it.id] is String && (values[it.id] as String).isBlank())) }
+        val missing = gen.parameters.filter { it.required && (values[it.id] == null
+                || (values[it.id] is String
+                && (values[it.id] as String).isBlank())) }
         if (previewContainer == null) return
         val content = if (missing.isNotEmpty()) {
-            "// " + MyBundle.message("preview.notReady", missing.joinToString { it.id }) + "\n"
+            "// " + MyBundle.message(
+                "preview.notReady", missing.joinToString { it.id }
+            ) + "\n"
         } else {
-            (gen as? BaseJavaPatternGenerator)?.preview(values) ?: "// Preview not available"
+            (gen as? BaseJavaPatternGenerator)?.
+                preview(values) ?: "// Preview not available"
         }
         updateTabbedPreview(content)
     }
@@ -327,12 +332,12 @@ class PatternGenerationDialog(private val project: Project, generators: List<Pat
         val result = HashMap<String, Any>()
         for (p in g.parameters) {
             val comp = fieldComponents[p.id]
-            val value: Any? = when (p.type) {
+            val value: Any = when (p.type) {
                 ParameterType.STRING -> (comp as JBTextField).text.trim().also { scheduleGraphRefresh() }
                 ParameterType.BOOLEAN -> (comp as JBCheckBox).isSelected.also { scheduleGraphRefresh() }
                 ParameterType.INTEGER -> (comp as JBTextField).text.trim().toIntOrNull()?.also { scheduleGraphRefresh() } ?: 0
             }
-            if (value != null) result[p.id] = value
+            result[p.id] = value
         }
         return result
     }
